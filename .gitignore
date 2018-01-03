@@ -2,3 +2,5 @@
 *.toml
 *.log
 vendor/
+
+!Gopkg.toml

@@ -9,6 +9,7 @@ type (
 	layout struct {
 		input  *input
 		output *output
+		ui     tui.UI
 	}
 
 	input struct {
@@ -43,21 +44,26 @@ func buildLayout(log *logrus.Entry) *layout {
 	return &layout{
 		output: output,
 		input:  input,
+		ui:     tui.New(tui.NewVBox(output.scrollBox, input.box)),
 	}
 }
 
 // Write the contents of p to the tui.Box returning the number of bytes
 // written and an error if one exists.
-func (o *output) Write(p []byte) (int, error) {
+func (l *layout) Write(p []byte) (int, error) {
 	// Scroll one line per call.
-	o.write(string(p), 1)
+	l.write(string(p), 1)
 	return len(p), nil
 }
 
-func (o *output) write(s string, scroll int) {
-	o.box.Append(tui.NewHBox(
+func (l *layout) write(s string, scroll int) {
+	l.output.box.Append(tui.NewHBox(
 		tui.NewLabel(s),
 	))
 
-	o.scrollArea.Scroll(0, scroll)
+	l.output.scrollArea.Scroll(0, scroll)
+
+	l.ui.Update(func() {
+		// Do nothing, we're just forcing a UI update.
+	})
 }

@@ -91,9 +91,12 @@ var (
 			}
 
 			go func() {
-				if err := _app.ui.Run(); err != nil {
+				if err := _app.layout.ui.Run(); err != nil {
 					_app.errCh <- err
 				}
+			}()
+			defer func() {
+				_app.layout.ui.Quit()
 			}()
 
 			// FIXME: from this point forwards all output needs to go to the ui until we exit...
