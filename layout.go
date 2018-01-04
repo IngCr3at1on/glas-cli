@@ -1,51 +1,62 @@
 package main
 
 import (
+	"strings"
+
+	"github.com/IngCr3at1on/glas/ansi"
 	tui "github.com/marcusolsson/tui-go"
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	defaultBG = tui.ColorDefault
+)
+
 type (
 	layout struct {
-		input  *input
-		output *output
-		ui     tui.UI
-	}
+		log   *logrus.Entry
+		ui    tui.UI
+		theme *tui.Theme
 
-	input struct {
-		box   *tui.Box
-		entry *tui.Entry
-	}
+		inputBox   *tui.Box
+		inputEntry *tui.Entry
 
-	output struct {
-		log        *logrus.Entry
-		box        *tui.Box
+		outputBox  *tui.Box
 		scrollArea *tui.ScrollArea
 		scrollBox  *tui.Box
+
+		prevAnsiColor string
 	}
 )
 
 func buildLayout(log *logrus.Entry) *layout {
-	output := &output{
-		log: log,
-		box: tui.NewVBox(),
-	}
-	output.scrollArea = tui.NewScrollArea(output.box)
-	output.scrollBox = tui.NewVBox(output.scrollArea)
+	inputEntry := tui.NewEntry()
+	inputEntry.SetFocused(true)
+	inputEntry.SetSizePolicy(tui.Expanding, tui.Maximum)
+	inputBox := tui.NewHBox(inputEntry)
+	inputBox.SetSizePolicy(tui.Expanding, tui.Maximum)
 
-	input := &input{
-		entry: tui.NewEntry(),
-	}
-	input.entry.SetFocused(true)
-	input.entry.SetSizePolicy(tui.Expanding, tui.Maximum)
-	input.box = tui.NewHBox(input.entry)
-	input.box.SetSizePolicy(tui.Expanding, tui.Maximum)
+	outputBox := tui.NewVBox()
+	scrollArea := tui.NewScrollArea(outputBox)
+	scrollBox := tui.NewVBox(scrollArea)
 
-	return &layout{
-		output: output,
-		input:  input,
-		ui:     tui.New(tui.NewVBox(output.scrollBox, input.box)),
+	l := &layout{
+		log:   log,
+		theme: tui.NewTheme(),
+
+		inputBox:   inputBox,
+		inputEntry: inputEntry,
+
+		outputBox:  outputBox,
+		scrollArea: scrollArea,
+		scrollBox:  scrollBox,
 	}
+
+	l.initTextThemes()
+	l.ui = tui.New(tui.NewVBox(scrollBox, inputBox))
+	l.ui.SetTheme(l.theme)
+
+	return l
 }
 
 // Write the contents of p to the tui.Box returning the number of bytes
@@ -57,13 +68,87 @@ func (l *layout) Write(p []byte) (int, error) {
 }
 
 func (l *layout) write(s string, scroll int) {
-	l.output.box.Append(tui.NewHBox(
-		tui.NewLabel(s),
-	))
+	l.outputBox.Append(
+		tui.NewHBox(l.ansiText(s)),
+	)
 
-	l.output.scrollArea.Scroll(0, scroll)
+	l.scrollArea.Scroll(0, scroll)
 
-	l.ui.Update(func() {
+	// FIXME: Temporary hack to resolve an issue with tui, run update in it's
+	// own go routine.
+	go l.ui.Update(func() {
 		// Do nothing, we're just forcing a UI update.
 	})
+}
+
+func (l *layout) initTextThemes() {
+	// Hack to be able to setup different colors ahead of time.
+	defaultText := tui.NewLabel("")
+	defaultText.SetStyleName(ansi.Default)
+	l.theme.SetStyle("label.default", tui.Style{Bg: defaultBG, Fg: tui.ColorDefault})
+
+	whiteText := tui.NewLabel("")
+	whiteText.SetStyleName(ansi.White)
+	l.theme.SetStyle("label.white", tui.Style{Bg: defaultBG, Fg: tui.ColorWhite})
+
+	blackText := tui.NewLabel("")
+	blackText.SetStyleName(ansi.Black)
+	l.theme.SetStyle("label.black", tui.Style{Bg: defaultBG, Fg: tui.ColorBlack})
+
+	// grey is not supported in tui
+
+	redText := tui.NewLabel("")
+	redText.SetStyleName(ansi.Red)
+	l.theme.SetStyle("label.red", tui.Style{Bg: defaultBG, Fg: tui.ColorRed})
+
+	greenText := tui.NewLabel("")
+	greenText.SetStyleName(ansi.Green)
+	l.theme.SetStyle("label.green", tui.Style{Bg: defaultBG, Fg: tui.ColorGreen})
+
+	blueText := tui.NewLabel("")
+	blueText.SetStyleName(ansi.Blue)
+	l.theme.SetStyle("label.blue", tui.Style{Bg: defaultBG, Fg: tui.ColorBlue})
+
+	yellowText := tui.NewLabel("")
+	yellowText.SetStyleName(ansi.Yellow)
+	l.theme.SetStyle("label.yellow", tui.Style{Bg: defaultBG, Fg: tui.ColorYellow})
+
+	magentaText := tui.NewLabel("")
+	magentaText.SetStyleName(ansi.Magenta)
+	l.theme.SetStyle("label.magenta", tui.Style{Bg: defaultBG, Fg: tui.ColorMagenta})
+
+	cyanText := tui.NewLabel("")
+	cyanText.SetStyleName(ansi.Cyan)
+	l.theme.SetStyle("label.cyan", tui.Style{Bg: defaultBG, Fg: tui.ColorCyan})
+}
+
+func (l *layout) ansiText(s string) *tui.Label {
+	// FIXME: this doesn't quite work...
+	ansiCodes := []string{}
+	for k, ac := range ansi.Codes {
+		if strings.Contains(s, ac) {
+			s = strings.Replace(s, ac, "", -1)
+			l.log.Error(k, ac)
+			ansiCodes = append(ansiCodes, k)
+		}
+	}
+
+	var ansiColor string
+	if len(ansiCodes) > 0 {
+		ansiColor = ansiCodes[0]
+	}
+
+	label := tui.NewLabel(s)
+	if ansiColor != "" {
+		label.SetStyleName(ansiColor)
+	} else if l.prevAnsiColor != "" {
+		label.SetStyleName(l.prevAnsiColor)
+	}
+
+	l.prevAnsiColor = ansiColor
+	if len(ansiCodes) > 1 {
+		l.prevAnsiColor = ansiCodes[len(ansiCodes)-1]
+	}
+
+	return label
 }

@@ -47,7 +47,7 @@ func newApp(config *Config, characterConfig *glas.CharacterConfig) (*app, error)
 		return nil, err
 	}
 
-	_app.layout.input.entry.OnSubmit(func(e *tui.Entry) {
+	_app.layout.inputEntry.OnSubmit(func(e *tui.Entry) {
 		if err := _app.glas.Send(e.Text()); err != nil {
 			_app.errCh <- err
 		}
@@ -62,10 +62,10 @@ func newApp(config *Config, characterConfig *glas.CharacterConfig) (*app, error)
 		_app.quit(nil)
 	})
 	_app.layout.ui.SetKeybinding("PgUp", func() {
-		_app.layout.output.scrollArea.Scroll(0, -1)
+		_app.layout.scrollArea.Scroll(0, -1)
 	})
 	_app.layout.ui.SetKeybinding("PgDn", func() {
-		_app.layout.output.scrollArea.Scroll(0, 1)
+		_app.layout.scrollArea.Scroll(0, 1)
 	})
 
 	return _app, nil
