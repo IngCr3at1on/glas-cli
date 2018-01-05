@@ -4,8 +4,8 @@ sudo: false
 go:
 - 1.9
 install:
-- cd $GOPATH/src/github/com/IngCr3at1on/glas-cli
+- cd $GOPATH/src/github.com/IngCr3at1on/glas-cli
 - bash scripts/travis_install.sh
 script:
-- cd $GOPATH/src/github/com/IngCr3at1on/glas-cli
+- cd $GOPATH/src/github.com/IngCr3at1on/glas-cli
 - bash scripts/travis_build.sh
