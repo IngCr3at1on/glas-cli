@@ -25,7 +25,7 @@ type (
 		scrollArea *tui.ScrollArea
 		scrollBox  *tui.Box
 
-		prevAnsiColor string
+		prevAnsiColors []string
 	}
 )
 
@@ -74,8 +74,7 @@ func (l *layout) write(s string, scroll int) {
 
 	l.scrollArea.Scroll(0, scroll)
 
-	// FIXME: Temporary hack to resolve an issue with tui, run update in it's
-	// own go routine.
+	// Run ui.Update asynchronously to avoid blocking.
 	go l.ui.Update(func() {
 		// Do nothing, we're just forcing a UI update.
 	})
@@ -136,18 +135,25 @@ func (l *layout) ansiText(s string) *tui.Label {
 	var ansiColor string
 	if len(ansiCodes) > 0 {
 		ansiColor = ansiCodes[0]
+		if len(ansiCodes) > 1 {
+			if len(l.prevAnsiColors) == 1 {
+				if l.prevAnsiColors[0] == ansiCodes[0] {
+					ansiColor = ansiCodes[1]
+				}
+			} else {
+				if l.prevAnsiColors[0] != ansiCodes[0] {
+					ansiColor = ansiCodes[1]
+				}
+			}
+		}
 	}
 
 	label := tui.NewLabel(s)
 	if ansiColor != "" {
 		label.SetStyleName(ansiColor)
-	} else if l.prevAnsiColor != "" {
-		label.SetStyleName(l.prevAnsiColor)
-	}
 
-	l.prevAnsiColor = ansiColor
-	if len(ansiCodes) > 1 {
-		l.prevAnsiColor = ansiCodes[len(ansiCodes)-1]
+		l.prevAnsiColors = []string{}
+		l.prevAnsiColors = append(l.prevAnsiColors, ansiCodes...)
 	}
 
 	return label

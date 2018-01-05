@@ -13,9 +13,11 @@ import (
 type (
 	// Config is the app configuration.
 	Config struct {
-		logLevel logrus.Level
-		LogLevel string ` toml:"log_level"`
-		LogFile  string `toml:"log_file"`
+		ClearInput       bool `toml:"clear_input"`
+		DisableLocalEcho bool `toml:"disable_local_echo"`
+		logLevel         logrus.Level
+		LogLevel         string `toml:"log_level"`
+		LogFile          string `toml:"log_file"`
 	}
 )
 

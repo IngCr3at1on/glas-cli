@@ -11,20 +11,26 @@ import (
 
 type (
 	app struct {
-		config          *Config
-		characterConfig *glas.CharacterConfig
-		log             *logrus.Entry
+		config *Config
+		log    *logrus.Entry
 
 		errCh  chan error
 		stopCh chan error
 
 		glas   *glas.Glas
 		layout *layout
+
+		commandHistory []string
+		historyIndex   uint
 	}
 )
 
 func newApp(config *Config, characterConfig *glas.CharacterConfig) (*app, error) {
-	_app := &app{}
+	_app := &app{
+		config:         config,
+		commandHistory: []string{},
+		historyIndex:   0,
+	}
 
 	logger := logrus.New()
 	logger.SetLevel(config.logLevel)
@@ -48,16 +54,20 @@ func newApp(config *Config, characterConfig *glas.CharacterConfig) (*app, error)
 	}
 
 	_app.layout.inputEntry.OnSubmit(func(e *tui.Entry) {
-		if err := _app.glas.Send(e.Text()); err != nil {
+		text := e.Text()
+		_app.historyIndex = 0
+		_app.commandHistory = append(_app.commandHistory, text)
+		if err := _app.glas.Send(text); err != nil {
 			_app.errCh <- err
 		}
-
-		// TODO: control this in settings.
-		_app.layout.write(e.Text(), 2)
-
-		// FIXME: clear input box (having issues doing this)...
+		if !_app.config.DisableLocalEcho {
+			_app.layout.write(text, 2)
+		}
+		if _app.config.ClearInput {
+			e.SetText("")
+		}
 	})
-
+	// FIXME: need a better way to quit than this...
 	_app.layout.ui.SetKeybinding("Esc", func() {
 		_app.quit(nil)
 	})
@@ -66,6 +76,26 @@ func newApp(config *Config, characterConfig *glas.CharacterConfig) (*app, error)
 	})
 	_app.layout.ui.SetKeybinding("PgDn", func() {
 		_app.layout.scrollArea.Scroll(0, 1)
+	})
+	_app.layout.ui.SetKeybinding("Up", func() {
+		ul := uint(len(_app.commandHistory))
+		n := ul - (_app.historyIndex + 1)
+		if ul > n && ul > 0 {
+			_app.historyIndex++
+			_app.layout.inputEntry.SetText(_app.commandHistory[n])
+		}
+	})
+	_app.layout.ui.SetKeybinding("Down", func() {
+		// FIXME: this really should clear the input line when you get back to the
+		// bottom of the list instead of leaving that last item in the input box.
+		if _app.historyIndex > 0 {
+			ul := uint(len(_app.commandHistory))
+			n := ul - (_app.historyIndex - 1)
+			if ul > n && ul > 0 {
+				_app.historyIndex--
+				_app.layout.inputEntry.SetText(_app.commandHistory[n])
+			}
+		}
 	})
 
 	return _app, nil

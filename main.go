@@ -8,9 +8,11 @@ import (
 )
 
 const (
-	defaultConfigFile = "./config.toml"
-	defaultLogFile    = "./glas.log"
-	defaultLogLevel   = "error"
+	defaultConfigFile       = "./config.toml"
+	defaultLogFile          = "./glas.log"
+	defaultLogLevel         = "error"
+	defaultClearInput       = false
+	defaultDisableLocalEcho = false
 )
 
 var (
@@ -18,7 +20,9 @@ var (
 	logFile    string
 	_logLevel  string
 
-	characterFile string
+	characterFile    string
+	clearInput       bool
+	disableLocalEcho bool
 
 	cmd = &cobra.Command{
 		Use:   "glas [address]",
@@ -78,6 +82,13 @@ var (
 				config.LogLevel = _logLevel
 			}
 
+			if clearInput {
+				config.ClearInput = clearInput
+			}
+			if disableLocalEcho {
+				config.DisableLocalEcho = disableLocalEcho
+			}
+
 			config.logLevel, err = readLogLevel(config.LogLevel)
 			if err != nil {
 				fmt.Println(err.Error())
@@ -123,6 +134,8 @@ func init() {
 	cmd.Flags().StringVar(&logFile, "logfile", defaultLogFile, "location for log file")
 	cmd.Flags().StringVar(&_logLevel, "loglvl", defaultLogLevel, "log level (debug, info, error)")
 	cmd.Flags().StringVarP(&characterFile, "character", "c", "", "the character configuration file")
+	cmd.Flags().BoolVar(&clearInput, "clearinput", defaultClearInput, "clear the input bar after hitting enter")
+	cmd.Flags().BoolVar(&disableLocalEcho, "localecho", defaultDisableLocalEcho, "whether to display input commands in output")
 }
 
 func main() {
