@@ -1,5 +1,7 @@
 language: go
-cache: apt
+cache:
+  directories:
+  - "$GOPATH/src/github.com/IngCr3at1on/glas-cli/vendor"
 sudo: false
 go:
 - 1.9
@@ -9,6 +11,9 @@ install:
 script:
 - cd $GOPATH/src/github.com/IngCr3at1on/glas-cli
 - bash scripts/travis_build.sh
-cache:
-  directories:
-  - $GOPATH/src/github.com/IngCr3at1on/glas-cli/vendor
+deploy:
+  provider: releases
+  api_key:
+    secure: "UL0XcvvFgg7Pf1cgJpIo9G/cJq9TBidBnxdjQGzXCfc2kslAEsOMFX0+UEZctC6cL7bA96kP/Jx+D7kB0zJFo8uoJ+oRbHyNXLYymS08PSL0ZvIfTH4pBcmTQAZeAbzGD/Ej6Wquqe1qWIvhnVColJU4jq8RGZkZUooquqFznPTj4j/bqLhw434bJmps/y2/Y8xqBZFfEvSEDknB8+V/9kXaeQytfBJYbLUPxmypfCBk9TuXV45QRpcT7zSBlaA18arsAx4heZtRudwN6MSrMHbYsNbvgLLkEVoW3PDyNw3l/SoRRq0mZMJ9NScA/Z2vuJjdDzKJlgz8ZIlyx64XSx+VKj91tRmvJj3Wr2CkqlTKSDMX1QLocRv6zdCQXMY4G4mUTIe5OWjJn97RdBqbLupynsF77VHGVPEr+8nHyGmofNiNB0qLMn41WMGJ7oQg0hGN03bkaBoNgYcCTM4aMnTMbtFdRpDU/8edjgrrFJSK/56cORewXoc5UcnyxWJqI5Nik1x62grBsNy4m7zqAW29Xwc64MuhtBxhFyiDaeJ/RBgUxv2Rh0y27ERP0BhkslMLj37lD8LWOIghquFS5MM1bvMf9z6uLUNVBwG0cow7xwSVJDd3pcBnU/2Sn1mu4z1ku6CGjV5yR1JI90lunRfBG3BcI+imwqNfKIZo0LA="
+  file: $GOPATH/src/github.com/IngCr3at1on/glas-cli/glas-cli
+  skip_cleanup: true
