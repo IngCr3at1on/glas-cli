@@ -9,3 +9,6 @@ install:
 script:
 - cd $GOPATH/src/github.com/IngCr3at1on/glas-cli
 - bash scripts/travis_build.sh
+cache:
+  directories:
+  - $GOPATH/src/github.com/IngCr3at1on/glas-cli/vendor
