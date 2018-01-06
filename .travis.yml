@@ -2,6 +2,7 @@ language: go
 cache:
   directories:
   - "$GOPATH/src/github.com/IngCr3at1on/glas-cli/vendor"
+  - "$GOPATH/bin/dep"
 sudo: false
 go:
 - 1.9
