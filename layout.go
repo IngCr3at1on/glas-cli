@@ -29,7 +29,7 @@ type (
 	}
 )
 
-func buildLayout(log *logrus.Entry) *layout {
+func buildLayout(log *logrus.Entry) (l *layout, err error) {
 	inputEntry := tui.NewEntry()
 	inputEntry.SetFocused(true)
 	inputEntry.SetSizePolicy(tui.Expanding, tui.Maximum)
@@ -40,7 +40,7 @@ func buildLayout(log *logrus.Entry) *layout {
 	scrollArea := tui.NewScrollArea(outputBox)
 	scrollBox := tui.NewVBox(scrollArea)
 
-	l := &layout{
+	l = &layout{
 		log:   log,
 		theme: tui.NewTheme(),
 
@@ -53,10 +53,13 @@ func buildLayout(log *logrus.Entry) *layout {
 	}
 
 	l.initTextThemes()
-	l.ui = tui.New(tui.NewVBox(scrollBox, inputBox))
+	l.ui, err = tui.New(tui.NewVBox(scrollBox, inputBox))
+	if err != nil {
+		return nil, err
+	}
 	l.ui.SetTheme(l.theme)
 
-	return l
+	return l, nil
 }
 
 // Write the contents of p to the tui.Box returning the number of bytes

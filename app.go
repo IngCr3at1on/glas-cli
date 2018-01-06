@@ -43,7 +43,10 @@ func newApp(config *Config, characterConfig *glas.CharacterConfig) (*app, error)
 	logger.Out = file
 	_app.log = logrus.NewEntry(logger)
 
-	_app.layout = buildLayout(_app.log)
+	_app.layout, err = buildLayout(_app.log)
+	if err != nil {
+		return nil, err
+	}
 
 	_app.errCh = make(chan error)
 	_app.stopCh = make(chan error)

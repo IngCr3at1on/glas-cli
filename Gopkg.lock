@@ -44,13 +44,13 @@
   revision = "231272389856c976b7500c4fffcc52ddf06ff4eb"
 
 [[projects]]
+  branch = "master"
   name = "github.com/marcusolsson/tui-go"
   packages = [
     ".",
     "wordwrap"
   ]
-  revision = "e15c085db2edb796ec53acc3504313217c2ece14"
-  version = "v0.3.0"
+  revision = "e45209b6d84031d5afebb52c4cd963b1338f05da"
 
 [[projects]]
   name = "github.com/mattn/go-runewidth"
@@ -101,7 +101,7 @@
     "unix",
     "windows"
   ]
-  revision = "a3f2cbd54cf5dfe3fbaccf76375fdb12f67654c8"
+  revision = "12d9d5b28165b1684fdc69be47f71a36d85e9a2a"
 
 [[projects]]
   branch = "master"

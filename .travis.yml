@@ -15,5 +15,9 @@ deploy:
   provider: releases
   api_key:
     secure: "flj/CU5HTDqqItVaRtKju3S8KJUsgvMDopSnvdpVgHXKshvTGYlUKXXr58CXrZEdSaOHR9+UFUr52EqYXym4BiTn2rt5UDOTJK+uWOYNLLP3OEthbVPFfO7W3QtgMiZ5OX3zAB1rzF+Gt40zxWKSex/Le8tyjM4qQS7u2aZYvlA6Zx8EFEyMFP0rF7Rs2sYMfeUEWTEHU6HQAVZH6pPs8C2K5G760jB10qTlVOl+PM9qGAb6PJqwrfYOiwoEE3XCdqlZ0oeY0IrDDF0lMc+RviHcW9Kme1LMaQInw7uOlcNcV45YnaUBMSJvWJmSgO/qZcL3G6vnpyaacXN9hlUF/yuhVKY+OQf3/EHl8dPQxwsWQS9A+sRc7yEW9C0OkD+jtZgamceiPoebhbwlMxkHHRQXDGq8ohO89ndj0CAmEBPLna73GfUuTL810ur0GQuFbRvla2SVubzYol66YmwclsvOIez7RRWwAW0yUwgomcCGn5enJr+Nsz26U9SJmFrKvoynq6+9tXsapt7phw2YjKlCNQWiWqFJfLr3J6ODbmO9w60hG9h4p+9v2OM6HHY5lbNgjwflDLnYIsHKY5gqaOSOJPqIYD6e0loEpFwaB7TGw3xgV39t80via4LIxJ3sf7uC8PYlp/V2V0A05jsVkv26h7PXfzfqeYKpPK5ZOqk="
-  file: $GOPATH/src/github.com/IngCr3at1on/glas-cli/glas-cli
+  file:
+  - $GOPATH/src/github.com/IngCr3at1on/glas-cli/glas-cli_linux64
+  - $GOPATH/src/github.com/IngCr3at1on/glas-cli/glas-cli_linux386
+  - $GOPATH/src/github.com/IngCr3at1on/glas-cli/glas-cli_darwin64
+  - $GOPATH/src/github.com/IngCr3at1on/glas-cli/glas-cli_darwin386
   skip_cleanup: true

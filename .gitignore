@@ -1,4 +1,4 @@
-glas-cli
+glas-cli*
 *.bak
 *.toml
 *.log
