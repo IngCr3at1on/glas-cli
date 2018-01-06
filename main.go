@@ -2,20 +2,23 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/user"
 
 	"github.com/IngCr3at1on/glas"
 	"github.com/spf13/cobra"
 )
 
 const (
-	defaultConfigFile       = "./config.toml"
-	defaultLogFile          = "./glas.log"
+	defaultConfigFile       = "%s/config.toml"
+	defaultLogFile          = "%s/glas.log"
 	defaultLogLevel         = "error"
 	defaultClearInput       = false
 	defaultDisableLocalEcho = false
 )
 
 var (
+	configPath string
 	configFile string
 	logFile    string
 	_logLevel  string
@@ -38,18 +41,15 @@ var (
 				address = args[0]
 			}
 
-			config, err := loadConfig(configFile)
-			if err != nil {
+			if err := os.MkdirAll(configPath, os.ModePerm); err != nil {
 				fmt.Println(err.Error())
 				return
 			}
 
-			if config == nil {
-				if configFile != defaultConfigFile {
-					fmt.Printf("config file \"%s\" not found\n", configFile)
-				}
-
-				config = &Config{}
+			config, err := loadConfig(configFile)
+			if err != nil {
+				fmt.Println(err.Error())
+				return
 			}
 
 			var characterConfig *glas.CharacterConfig
@@ -130,12 +130,33 @@ var (
 )
 
 func init() {
-	cmd.Flags().StringVar(&configFile, "config", defaultConfigFile, "location for the glas configuration file")
-	cmd.Flags().StringVar(&logFile, "logfile", defaultLogFile, "location for log file")
+	usr, err := user.Current()
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	_defaultConfigPath := fmt.Sprintf(defaultConfigPath, usr.HomeDir)
+	_defaultConfigFile := fmt.Sprintf(defaultConfigFile, _defaultConfigPath)
+	_defaultLogFile := fmt.Sprintf(defaultLogFile, _defaultConfigPath)
+
+	cmd.Flags().StringVarP(&configPath, "path", "p", _defaultConfigPath, "path to search for config files")
+	cmd.Flags().StringVar(&configFile, "config", _defaultConfigFile, "location for the glas configuration file")
+	cmd.Flags().StringVar(&logFile, "logfile", _defaultLogFile, "location for log file")
 	cmd.Flags().StringVar(&_logLevel, "loglvl", defaultLogLevel, "log level (debug, info, error)")
+	// TODO: search for character files in the config path.
 	cmd.Flags().StringVarP(&characterFile, "character", "c", "", "the character configuration file")
 	cmd.Flags().BoolVar(&clearInput, "clearinput", defaultClearInput, "clear the input bar after hitting enter")
 	cmd.Flags().BoolVar(&disableLocalEcho, "localecho", defaultDisableLocalEcho, "whether to display input commands in output")
+
+	if configPath != _defaultConfigPath {
+		if configFile == _defaultConfigFile {
+			configFile = fmt.Sprintf(defaultConfigFile, configPath)
+		}
+		if logFile == _defaultLogFile {
+			logFile = fmt.Sprintf(defaultLogFile, configPath)
+		}
+	}
 }
 
 func main() {

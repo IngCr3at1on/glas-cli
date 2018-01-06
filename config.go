@@ -10,6 +10,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const defaultConfigText = `#log_level = "debug"         # uncomment and change to adjust log level (see help).
+#clear_input = true          # uncomment have input cleared on enter.
+#disable_local_echo = true   # uncomment to disable displaying input commands in output.`
+
 type (
 	// Config is the app configuration.
 	Config struct {
@@ -24,7 +28,15 @@ type (
 func loadConfig(file string) (*Config, error) {
 	// See if the file exists first.
 	if _, err := os.Stat(file); err != nil {
-		return nil, nil
+		if !os.IsNotExist(err) {
+			return nil, err
+		}
+
+		if err := ioutil.WriteFile(file, []byte(defaultConfigText), 0666); err != nil {
+			return nil, err
+		}
+
+		return &Config{}, nil
 	}
 
 	byt, err := ioutil.ReadFile(file)
