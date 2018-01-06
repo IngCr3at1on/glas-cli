@@ -9,14 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	defaultConfigFile       = "%s/config.toml"
-	defaultLogFile          = "%s/glas.log"
-	defaultLogLevel         = "error"
-	defaultClearInput       = false
-	defaultDisableLocalEcho = false
-)
-
 var (
 	configPath string
 	configFile string
@@ -29,7 +21,7 @@ var (
 
 	cmd = &cobra.Command{
 		Use:   "glas [address]",
-		Short: "A simple MUD Client In Go",
+		Short: "A simple MUD Client in Go",
 
 		Run: func(cmd *cobra.Command, args []string) {
 			var address string
