@@ -60,11 +60,21 @@ func newApp(path string, config *Config) (*app, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	_app.layout.inputEntry.OnSubmit(func(e *tui.Entry) {
 		text := e.Text()
 		_app.historyIndex = 0
 		_app.commandHistory = append(_app.commandHistory, text)
+
+		if !_app.config.DisableLocalEcho {
+			_app.layout.write(text, 1)
+		}
+
+		defer func() {
+			if _app.config.ClearInput {
+				e.SetText("")
+			}
+		}()
 
 		// Handle any local commands before calling the glas framework.
 		ok, err := _app.handleCommand(text)
@@ -77,15 +87,9 @@ func newApp(path string, config *Config) (*app, error) {
 			return
 		}
 
-		if !_app.config.DisableLocalEcho {
-			_app.layout.write(text, 2)
-		}
 		if err := _app.glas.Send(text); err != nil {
 			_app.errCh <- err
 			return
-		}
-		if _app.config.ClearInput {
-			e.SetText("")
 		}
 	})
 	_app.layout.ui.SetKeybinding("PgUp", func() {
