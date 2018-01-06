@@ -14,7 +14,7 @@
     ".",
     "ansi"
   ]
-  revision = "2177b72160ea0a0b435eec3a2607d8dbe40be576"
+  revision = "b34d29dd7be7d9257af44d1ff046c9aa8f1201ad"
 
 [[projects]]
   branch = "master"
