@@ -25,7 +25,7 @@ type (
 	}
 )
 
-func newApp(config *Config, characterConfig *glas.CharacterConfig) (*app, error) {
+func newApp(path string, config *Config) (*app, error) {
 	_app := &app{
 		config:         config,
 		commandHistory: []string{},
@@ -51,28 +51,42 @@ func newApp(config *Config, characterConfig *glas.CharacterConfig) (*app, error)
 	_app.errCh = make(chan error)
 	_app.stopCh = make(chan error)
 
-	_app.glas, err = glas.New(characterConfig, _app.layout, _app.errCh, _app.stopCh, _app.log)
+	glasConfig := &glas.Config{
+		CmdPrefix:     _app.config.CmdPrefix,
+		CharacterPath: path,
+	}
+
+	_app.glas, err = glas.New(glasConfig, _app.layout, _app.errCh, _app.stopCh, _app.log)
 	if err != nil {
 		return nil, err
 	}
-
+	
 	_app.layout.inputEntry.OnSubmit(func(e *tui.Entry) {
 		text := e.Text()
 		_app.historyIndex = 0
 		_app.commandHistory = append(_app.commandHistory, text)
-		if err := _app.glas.Send(text); err != nil {
+
+		// Handle any local commands before calling the glas framework.
+		ok, err := _app.handleCommand(text)
+		if err != nil {
 			_app.errCh <- err
+			return
 		}
+
+		if ok {
+			return
+		}
+
 		if !_app.config.DisableLocalEcho {
 			_app.layout.write(text, 2)
+		}
+		if err := _app.glas.Send(text); err != nil {
+			_app.errCh <- err
+			return
 		}
 		if _app.config.ClearInput {
 			e.SetText("")
 		}
-	})
-	// FIXME: need a better way to quit than this...
-	_app.layout.ui.SetKeybinding("Esc", func() {
-		_app.quit(nil)
 	})
 	_app.layout.ui.SetKeybinding("PgUp", func() {
 		_app.layout.scrollArea.Scroll(0, -1)

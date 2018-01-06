@@ -6,4 +6,5 @@ const (
 	defaultLogLevel         = "error"
 	defaultClearInput       = false
 	defaultDisableLocalEcho = false
+	defaultCmdPrefix        = "/"
 )

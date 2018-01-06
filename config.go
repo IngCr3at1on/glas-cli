@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/BurntSushi/toml"
-	"github.com/IngCr3at1on/glas"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -22,6 +21,7 @@ type (
 		logLevel         logrus.Level
 		LogLevel         string `toml:"log_level"`
 		LogFile          string `toml:"log_file"`
+		CmdPrefix        string
 	}
 )
 
@@ -45,20 +45,6 @@ func loadConfig(file string) (*Config, error) {
 	}
 
 	var config Config
-	if _, err := toml.Decode(string(byt), &config); err != nil {
-		return nil, errors.Wrap(err, "toml.Decode")
-	}
-
-	return &config, nil
-}
-
-func loadCharacterConfig(file string) (*glas.CharacterConfig, error) {
-	byt, err := ioutil.ReadFile(file)
-	if err != nil {
-		return nil, errors.Wrap(err, "ioutil.ReadFile")
-	}
-
-	var config glas.CharacterConfig
 	if _, err := toml.Decode(string(byt), &config); err != nil {
 		return nil, errors.Wrap(err, "toml.Decode")
 	}

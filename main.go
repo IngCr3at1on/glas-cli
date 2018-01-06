@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/user"
 
-	"github.com/IngCr3at1on/glas"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -15,22 +16,27 @@ var (
 	logFile    string
 	_logLevel  string
 
-	characterFile    string
+	// TODO: add the ability to load a character file with a specific path.
+	//characterFile    string
 	clearInput       bool
 	disableLocalEcho bool
+	cmdPrefix        string
 
 	cmd = &cobra.Command{
-		Use:   "glas [address]",
+		Use:   "glas-cli [connect argument]",
 		Short: "A simple MUD Client in Go",
+		Long: `A MUD client designed with the terminal in mind. The connect argument can be a
+path to a supported character file, the name of a character in the config path,
+or an address to connect to.`,
 
 		Run: func(cmd *cobra.Command, args []string) {
-			var address string
+			var connectArg string
 
-			if l := len(args); l > 0 && l != 1 {
+			if l := len(args); l > 1 {
 				fmt.Printf("Invalid number of arguments %d, see --help for more information\n", l)
 				return
 			} else if l == 1 {
-				address = args[0]
+				connectArg = args[0]
 			}
 
 			if err := os.MkdirAll(configPath, os.ModePerm); err != nil {
@@ -42,24 +48,6 @@ var (
 			if err != nil {
 				fmt.Println(err.Error())
 				return
-			}
-
-			var characterConfig *glas.CharacterConfig
-			if characterFile != "" {
-				characterConfig, err = loadCharacterConfig(characterFile)
-				if err != nil {
-					fmt.Println(err.Error())
-					return
-				}
-			}
-
-			if characterConfig == nil {
-				characterConfig = &glas.CharacterConfig{}
-			}
-
-			// Prefer the provided address (if there is one).
-			if address != "" {
-				characterConfig.Address = address
 			}
 
 			if config.LogFile == "" {
@@ -81,13 +69,19 @@ var (
 				config.DisableLocalEcho = disableLocalEcho
 			}
 
+			if config.CmdPrefix == "" {
+				config.CmdPrefix = cmdPrefix
+			} else if cmdPrefix != defaultCmdPrefix {
+				config.CmdPrefix = cmdPrefix
+			}
+
 			config.logLevel, err = readLogLevel(config.LogLevel)
 			if err != nil {
 				fmt.Println(err.Error())
 				return
 			}
 
-			_app, err := newApp(config, characterConfig)
+			_app, err := newApp(configPath, config)
 			if err != nil {
 				fmt.Println(err.Error())
 				return
@@ -102,9 +96,7 @@ var (
 				_app.layout.ui.Quit()
 			}()
 
-			// FIXME: from this point forwards all output needs to go to the ui until we exit...
-
-			_app.glas.Start()
+			_app.glas.Start(connectArg)
 
 		out:
 			for {
@@ -113,8 +105,11 @@ var (
 					_app.quit(err)
 					break out
 				case err = <-_app.errCh:
-					_app.log.Error(err.Error())
-					break out
+					cause := errors.Cause(err)
+					if cause != io.EOF {
+						_app.layout.write(err.Error(), 1)
+						_app.log.Error(err.Error())
+					}
 				}
 			}
 		},
@@ -136,8 +131,8 @@ func init() {
 	cmd.Flags().StringVar(&configFile, "config", _defaultConfigFile, "location for the glas configuration file")
 	cmd.Flags().StringVar(&logFile, "logfile", _defaultLogFile, "location for log file")
 	cmd.Flags().StringVar(&_logLevel, "loglvl", defaultLogLevel, "log level (debug, info, error)")
-	// TODO: search for character files in the config path.
-	cmd.Flags().StringVarP(&characterFile, "character", "c", "", "the character configuration file")
+	// TODO: allow loading a specific character by file instead of only the ones loaded by config path.
+	//cmd.Flags().StringVarP(&characterFile, "character", "c", "", "the character configuration file")
 	cmd.Flags().BoolVar(&clearInput, "clearinput", defaultClearInput, "clear the input bar after hitting enter")
 	cmd.Flags().BoolVar(&disableLocalEcho, "localecho", defaultDisableLocalEcho, "whether to display input commands in output")
 
