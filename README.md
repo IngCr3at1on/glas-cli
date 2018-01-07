@@ -12,5 +12,7 @@ Stable releases will be tagged and listed on the [releases page](https://github.
 
 Currently only linux and os-x builds are compiled by Travis.
 
+[![asciicast](https://asciinema.org/a/155884.png)](https://asciinema.org/a/155884)
+
 [travis]: https://travis-ci.org/IngCr3at1on/glas-cli
 [travis_badge]: https://travis-ci.org/IngCr3at1on/glas-cli.svg?branch=master
